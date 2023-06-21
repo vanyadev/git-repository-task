@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { Card } from "../card";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useContributors } from "@/hook/ useContributor";
@@ -8,9 +8,10 @@ export const Home: FC = () => {
 
   return (
     <>
-      <h1 className="font-bold text-[18px] pb-[12px] border-b-[1px] border-[#C4C4C4] mb-[30px]">
+      <h1 className="font-bold text-[18px] pb-[12px] pt-[12px] border-b-[1px] border-[#C4C4C4] mb-[30px]">
         Top Contributors
       </h1>
+
       <InfiniteScroll
         dataLength={data?.pages.flatMap((page) => page.items).length || 0}
         next={fetchNextPage}
@@ -23,8 +24,7 @@ export const Home: FC = () => {
           .map((item) => (
             <Card
               key={item.id}
-              name={item.login}
-              img={item.avatar_url}
+              userInfo={item.user_info}
               commits={item.contributions}
             />
           ))}

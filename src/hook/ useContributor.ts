@@ -1,45 +1,72 @@
 import axios from "axios";
 import { useInfiniteQuery } from "react-query";
 
-interface Contributor {
+type Contributor = {
   login: string;
   id: number;
-  node_id: string;
   avatar_url: string;
-  gravatar_id: string;
   url: string;
-  html_url: string;
-  followers_url: string;
-  following_url: string;
-  gists_url: string;
-  starred_url: string;
-  subscriptions_url: string;
-  organizations_url: string;
-  repos_url: string;
-  events_url: string;
-  received_events_url: string;
-  type: string;
-  site_admin: boolean;
   contributions: number;
-}
+};
 
-interface ApiResponse {
-  items: Contributor[];
+type Data = {
+  login: string;
+  id: number;
+  avatar_url: string;
+  contributions: number;
+  user_info: User;
+};
+
+type ApiResponse = {
+  items: Data[];
   nextCursor: number;
   prevCursor: number;
-}
+};
+export type User = {
+  login: string;
+  id: number;
+  url: string;
+  name: string;
+  avatar_url: string;
+  location: string | null;
+};
 
 const fetchContributors = async ({ pageParam = 1 }): Promise<ApiResponse> => {
-  console.log("pageParam -", pageParam);
   const response = await axios.get(
     `https://api.github.com/repos/angular/angular/contributors?page=${pageParam}&per_page=25`
   );
+  const allContributors = response.data;
+
+  const contributorsWithUserInfo = await Promise.all(
+    allContributors.map(async (contributor: Contributor) => {
+      const userResponse = await axios.get(contributor.url);
+      const userInfo: User = userResponse.data;
+      return {
+        ...contributor,
+        user_info: userInfo,
+      };
+    })
+  );
+
   return {
-    items: response.data,
+    items: contributorsWithUserInfo,
     nextCursor: pageParam + 1,
     prevCursor: pageParam - 1,
   };
 };
+
+// const fetchContributors = async ({ pageParam = 1 }): Promise<ApiResponse> => {
+//   const response = await axios.get(
+//     `https://api.github.com/repos/angular/angular/contributors?page=${pageParam}&per_page=25`
+//   );
+//   const allContributors = response.data;
+
+//   return {
+//     items: response.data,
+//     nextCursor: pageParam + 1,
+//     prevCursor: pageParam - 1,
+//   };
+// };
 
 export const useContributors = () => {
   return useInfiniteQuery<ApiResponse, Error>({

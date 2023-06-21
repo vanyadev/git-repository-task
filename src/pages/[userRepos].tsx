@@ -21,9 +21,15 @@ const UserRepositories: FC = () => {
   const { data, error, isLoading } = useQuery<Repo[], Error>(
     "repositories",
     () =>
-      fetch(`https://api.github.com/users/${userRepos}/repos`).then((res) =>
-        res.json()
-      )
+      fetch(`https://api.github.com/users/${userRepos}/repos`)
+        .then((res) => res.json())
+        .then((repos: Repo[]) =>
+          repos.sort((a, b) => {
+            const dateA = new Date(a.updated_at);
+            const dateB = new Date(b.updated_at);
+            return dateB.getTime() - dateA.getTime();
+          })
+        )
   );
 
   const formatDate = (dateString: Date) => {
@@ -48,19 +54,34 @@ const UserRepositories: FC = () => {
       ) : (
         <div className="flex flex-col gap-y-[10px]">
           {data?.map((repo) => (
-            <div className="bg-white px-2 flex flex-col gap-2" key={repo.id}>
-              <div>Repository name: {repo.name}</div>
-              <div>Repository fullName: {repo.full_name}</div>
+            <div
+              className="bg-white px-2 flex flex-col gap-2 py-2 rounded"
+              key={repo.id}
+            >
+              <div>
+                Repository name: <b>{repo.name}</b>
+              </div>
+              <div>
+                Repository fullName: <b> {repo.full_name} </b>
+              </div>
               <div>
                 Description:
-                {repo.description ? ` ${repo.description}` : " No description"}
+                <b>
+                  {repo.description
+                    ? ` ${repo.description}`
+                    : " No description"}{" "}
+                </b>
               </div>
               <div>
                 Language:
-                {repo.language ? ` ${repo.language}` : " No language"}
+                <b>{repo.language ? ` ${repo.language}` : " No language"}</b>
               </div>
-              <div>Created at: {formatDate(repo.created_at)}</div>
-              <div>Updated at: {formatDate(repo.updated_at)}</div>
+              <div>
+                Created at: <b> {formatDate(repo.created_at)}</b>
+              </div>
+              <div>
+                Updated at: <b> {formatDate(repo.updated_at)}</b>
+              </div>
             </div>
           ))}
         </div>
